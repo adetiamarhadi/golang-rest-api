@@ -78,7 +78,7 @@ func (controller *bookController) Insert(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		userID := controller.getUserIDByToken(authHeader)
 		convertedUserID, err := strconv.ParseUint(userID, 10, 64)
-		if err != nil {
+		if err == nil {
 			bookCreateDto.UserID = convertedUserID
 		}
 		result := controller.bookService.Insert(bookCreateDto)
@@ -88,7 +88,16 @@ func (controller *bookController) Insert(ctx *gin.Context) {
 }
 
 func (controller *bookController) Update(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 0, 0)
+	if err != nil {
+		res := helper.BuildErrorResponse("no param id was found", err.Error(), helper.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
 	var bookUpdateDto dto.BookUpdateDTO
+	bookUpdateDto.ID = id
+
 	errDto := ctx.ShouldBind(&bookUpdateDto)
 	if errDto != nil {
 		res := helper.BuildErrorResponse("failed to process request", errDto.Error(), helper.EmptyObj{})
@@ -100,8 +109,8 @@ func (controller *bookController) Update(ctx *gin.Context) {
 	userID := controller.getUserIDByToken(authHeader)
 	if (controller.bookService.IsAllowedToEdit(userID, bookUpdateDto.ID)) {
 		id, err := strconv.ParseUint(userID, 10, 64)
-		if err != nil {
-			bookUpdateDto.ID = id
+		if err == nil {
+			bookUpdateDto.UserID = id
 		}
 		result := controller.bookService.Update(bookUpdateDto)
 		res := helper.BuildResponse(true, "OK", result)
