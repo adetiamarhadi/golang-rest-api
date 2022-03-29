@@ -24,14 +24,14 @@ type BookController interface {
 
 type bookController struct {
 	bookService service.BookService
-	jwtService service.JWTService
+	jwtService  service.JWTService
 }
 
 // NewBookController ...
 func NewBookController(bs service.BookService, jwt service.JWTService) BookController {
 	return &bookController{
 		bookService: bs,
-		jwtService: jwt,
+		jwtService:  jwt,
 	}
 }
 
@@ -107,7 +107,7 @@ func (controller *bookController) Update(ctx *gin.Context) {
 
 	authHeader := ctx.GetHeader("Authorization")
 	userID := controller.getUserIDByToken(authHeader)
-	if (controller.bookService.IsAllowedToEdit(userID, bookUpdateDto.ID)) {
+	if controller.bookService.IsAllowedToEdit(userID, bookUpdateDto.ID) {
 		id, err := strconv.ParseUint(userID, 10, 64)
 		if err == nil {
 			bookUpdateDto.UserID = id
@@ -134,7 +134,7 @@ func (controller *bookController) Delete(ctx *gin.Context) {
 
 	authHeader := ctx.GetHeader("Authorization")
 	userID := controller.getUserIDByToken(authHeader)
-	if (controller.bookService.IsAllowedToEdit(userID, book.ID)) {
+	if controller.bookService.IsAllowedToEdit(userID, book.ID) {
 		controller.bookService.Delete(book)
 		res := helper.BuildResponse(true, "Deleted", helper.EmptyObj{})
 		ctx.JSON(http.StatusOK, res)
